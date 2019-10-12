@@ -22,3 +22,5 @@ Take two ESP8266 boards, connect pins D1-D1, D2-D2 and GND-GND.
 Load one with Master (you can just close the console and let it run...) and the other with Slave code (you'll see in the slave console, once it starts working).
 
 ![wiring](https://raw.githubusercontent.com/staceyszigeti/esp8266-I2C-slave/master/wiring.jpg)
+![wiring](https://raw.githubusercontent.com/staceyszigeti/esp8266-I2C-slave/master/wiring.PNG)
+
