@@ -46,8 +46,7 @@ uint16_t calculateCRC16(uint8_t *data, size_t length) {
 void setup() {
 
   // Enable internal pullup (there's always one from the master side)
-  //digitalWrite(SDA_PIN, HIGH);
-  //digitalWrite(SCL_PIN, HIGH);
+  // A Mi nyákunkon ez most már rajta van fizikailag!
   
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -61,7 +60,7 @@ void setup() {
   delay(2000);
   digitalWrite(LED_PIN, HIGH);
 
-  scan();
+  //scan();
   
   Wire.onReceive(receiveEvent);
 
@@ -74,8 +73,8 @@ MESSAGE_DATA encodeMessage(String bytes) {
   msgdata.terminator = '.';
 
   int datasize = sizeof(msgdata.data);
-  Serial.print("Encoding data of size: ");
-  Serial.println(datasize);
+  //Serial.print("Encoding data of size: ");
+  //Serial.println(datasize);
   
   // Generate new data set for the struct
   for (size_t i = 0; i < datasize; i++) {
@@ -89,7 +88,7 @@ MESSAGE_DATA encodeMessage(String bytes) {
   }  
   Serial.println();
   msgdata.crc16 = calculateCRC16((uint8_t*) &msgdata.data[0], datasize);
-  Serial.print("Outgoing Message CRC16: "); Serial.println(msgdata.crc16, HEX);
+  //Serial.print("Outgoing Message CRC16: "); Serial.println(msgdata.crc16, HEX);
   return msgdata;
 }
 
@@ -100,17 +99,17 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
 
   // Validate terminator
   if (tmp.terminator == '.') {
-    Serial.println("[OK] Terminator valid.");
+    //Serial.println("[OK] Terminator valid.");
   } else {
-    Serial.print("[ERROR] Terminator invalid: '");
-    Serial.print(tmp.terminator);
-    Serial.println("'");
+    //Serial.print("[ERROR] Terminator invalid: '");
+    //Serial.print(tmp.terminator);
+    //Serial.println("'");
     return tmp;
   }
 
   int datasize = sizeof(tmp.data);
   if (datasize != 28) {
-    Serial.print("Data of size: "); Serial.println(datasize);
+    //Serial.print("Data of size: "); Serial.println(datasize);
     if (datasize > 28) {
       datasize == 28;
     }
@@ -125,15 +124,15 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
     
   // Validate incoming data CRC against remote CRC
   if (tmp.crc16 == data_crc) {
-    Serial.println("[OK] Data CRC valid.");    
+    //Serial.println("[OK] Data CRC valid.");    
     Serial.print("SLAVE Incoming message: "); Serial.println(String(inmsg));
   } else {
-    Serial.print("CRC-A = 0x");
+    /*Serial.print("CRC-A = 0x");
     Serial.println(tmp.crc16, HEX);
     Serial.print("CRC-B = 0x");
     Serial.println(data_crc, HEX);
     Serial.print("tmp CRC16: ");
-    Serial.println(tmp.crc16, HEX);
+    Serial.println(tmp.crc16, HEX);*/
     Serial.print("SLAVE Incoming message: "); Serial.println(String(inmsg));
     Serial.println("[ERROR] TODO: Request retransfer exception.");
     return tmp;
@@ -153,13 +152,13 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
 
 void receiveEvent(int howMany) {
 
-  Serial.print("Received "); Serial.print(howMany); Serial.println(" bytes...");
+  //Serial.print("Received "); Serial.print(howMany); Serial.println(" bytes...");
   char c;
   char chars[howMany];
   chars[howMany - 1] = '\0';
   int index = 0;
 
-  Serial.print("Local Sequence: "); Serial.println((int)seq);
+  //Serial.print("Local Sequence: "); Serial.println((int)seq);
   digitalWrite(LED_PIN, LOW);
 
   bool requestRetransfer = false;
@@ -171,39 +170,39 @@ void receiveEvent(int howMany) {
       c = Wire.read();
       chars[index] = c;
       //Serial.print(index); Serial.print(" : "); Serial.println((int)c);
-      Serial.print((int)c);
-      Serial.print(" ");
+      //Serial.print((int)c);
+      //Serial.print(" ");
 
       // Parses first byte for sequence number, contains recovery logic...
       if (index == 0) {
 
-         Serial.print("Remote Sequence: "); Serial.println((int)c);
+         //Serial.print("Remote Sequence: "); Serial.println((int)c);
 
          if ( c!= seq && ((c > seq - 4) || (c < seq + 4)) && c != seq + 1) {
-          Serial.print("[DIFF] Sequence offset [!]: ");
+          /*Serial.print("[DIFF] Sequence offset [!]: ");
           Serial.println(c - seq);
           Serial.print("Re-assigning sequence number: ");
-          Serial.println(seq);
+          Serial.println(seq);*/
           seq = c;
           requestRetransfer = true;
 
         } else if (c != seq + 1) {
 
-          Serial.print("[+DIFF] Local Sequence: ");
+          /*Serial.print("[+DIFF] Local Sequence: ");
           Serial.println(seq);
           Serial.print("[+DIFF] Sequence offset [!]: ");
-          Serial.println(c - seq);
+          Serial.println(c - seq);*/
           requestRetransfer = true;
         }
 
         if (seq == 0) {
-          Serial.print("Assigning sequence 0: ");
-          Serial.println(seq);
+          /*Serial.print("Assigning sequence 0: ");
+          Serial.println(seq);*/
           seq = c;
 
         } else if (c != seq + 1) {
-          Serial.print("Re-assigning sequence number: ");
-          Serial.println(seq);
+          /*Serial.print("Re-assigning sequence number: ");
+          Serial.println(seq);*/
           seq = c;
         }
         seq = c;
@@ -215,7 +214,7 @@ void receiveEvent(int howMany) {
     } // while
   } // while
 
-  Serial.println(String(chars));
+  //Serial.println(String(chars));
 
   if (requestRetransfer) {
       String event = String("R") + String(seq) + String('\0');
@@ -225,7 +224,7 @@ void receiveEvent(int howMany) {
   }
 
   int error = 0;
-  Serial.print("Decoding data of size: "); Serial.println(sizeof(chars));
+  //Serial.print("Decoding data of size: "); Serial.println(sizeof(chars));
   message = validateMessage(chars); // &error
 
   // TODO: Do something with the message.
@@ -233,26 +232,26 @@ void receiveEvent(int howMany) {
   memcpy(inmessage, (const char*)&message.data, 4);
   String inmsg = String(inmessage);
   if (inmsg.indexOf("MESA") == 0) {
-    String event = String("PONG");
+    String event = String("valasz uzenet");
     sendMessage(seq, event);
   }
 
 }
 
 void sendMessage(int seq, String msg) {
-  Wire.beginTransmission(0x42); // transmit to device #8
+  Wire.beginTransmission(I2C_MASTER); // transmit to device #8
   //Sending Side
   MESSAGE_DATA struct_data = encodeMessage(msg);
   struct_data.sequence = seq;
   char b[sizeof(struct_data)];
   memcpy(b, &struct_data, sizeof(struct_data));
-  Serial.print("Sending message of size "); Serial.print(sizeof(struct_data)); Serial.println();
-  Serial.print("'");
+  //Serial.print("Sending message of size "); Serial.print(sizeof(struct_data)); Serial.println();
+  //Serial.print("'");
   for (int i = 0; i < sizeof(struct_data); i++) {
     Wire.write(b[i]);
     Serial.print(b[i]);
   }
-  Serial.println("' sent...");
+  //Serial.println("' sent...");
   Wire.endTransmission();    // stop transmitting
 }
 
@@ -260,7 +259,7 @@ void sendMessage(int seq, String msg) {
 void sendEvent(int a, String msg) {
   Serial.print("Sending ");
   Serial.println(msg);
-  Wire.beginTransmission(0x42); // transmit to master
+  Wire.beginTransmission(I2C_MASTER); // transmit to master
   Wire.write(a);
   Wire.write(";");        // sends five bytes
   Wire.write(msg.c_str());

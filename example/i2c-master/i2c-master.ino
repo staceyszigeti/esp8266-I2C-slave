@@ -55,8 +55,8 @@ MESSAGE_DATA encodeMessage(String bytes) {
   msgdata.terminator = '.'; 
   
   int datasize = sizeof(msgdata.data);
-  Serial.print("\nEncoding data of size: ");
-  Serial.println(datasize);
+  //Serial.print("\nEncoding data of size: ");
+  //Serial.println(datasize);
   
   // Generate new data set for the struct
   for (size_t i = 0; i < datasize; i++) {
@@ -82,13 +82,13 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
   // Validate PROTOCOL terminator
   if (tmp.terminator != '.') {    
     Serial.print("[ERROR] Terminator invalid: '");
-    Serial.print(tmp.terminator);
-    Serial.println("'");
+    //Serial.print(tmp.terminator);
+    //Serial.println("'");
     return tmp; // should be nullptr // TODO: return error
   }
 
   int datasize = sizeof(tmp.data);
-  Serial.print("Data of size: "); Serial.println(datasize);    
+  //Serial.print("Data of size: "); Serial.println(datasize);    
 
   uint16_t data_crc = calculateCRC16((uint8_t*) &tmp.data[0], datasize);
 
@@ -99,12 +99,12 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
     memcpy(inmsg, &tmp.data, datasize);
     Serial.print("MASTER Incoming message: "); Serial.println(String(inmsg));    
   } else {
-    Serial.print("CRC-A = 0x");
+    /*Serial.print("CRC-A = 0x");
     Serial.println(tmp.crc16, HEX);
     Serial.print("Incoming message CRC-B = 0x");
     Serial.println(data_crc, HEX);
     Serial.print("tmp CRC16: ");
-    Serial.println(tmp.crc16, HEX);
+    Serial.println(tmp.crc16, HEX);*/
     Serial.println("[ERROR] Request retransfer exception.");
     return tmp;
   }
@@ -113,9 +113,9 @@ MESSAGE_DATA validateMessage(char* bytes_message) {
   uint8_t remote_sequence = tmp.sequence;
   if (remote_sequence < sequence - 1) {
     Serial.print("[WARNING] TODO: Unexpected sequence number: ");
-    Serial.print(remote_sequence);
+    /*Serial.print(remote_sequence);
     Serial.print(" while local is ");
-    Serial.println(sequence); // TODO: return error
+    Serial.println(sequence); // TODO: return error*/
   }
 
   msgdata = tmp; // tmp is valid, assign to result address
@@ -140,9 +140,9 @@ void sendMessage(int seq, String msg) {
   MESSAGE_DATA struct_data = encodeMessage(msg);
   struct_data.sequence = seq;
   char buf[sizeof(struct_data)];
-  Serial.print(" of size ");
-  Serial.println(sizeof(struct_data));
-  Serial.print("Encoding struct of size: "); Serial.println(sizeof(struct_data));
+  //Serial.print(" of size ");
+  //Serial.println(sizeof(struct_data));
+  //Serial.print("Encoding struct of size: "); Serial.println(sizeof(struct_data));
   memcpy(buf, &struct_data, sizeof(struct_data));  
   for (int i = 0; i < sizeof(struct_data); i++) {
     Wire.write(buf[i]);
@@ -186,8 +186,8 @@ void receiveEvent(int howMany) {
     String retransfer_command = String(inmsg);
     retransfer_command.replace("R", "");
     int retransfer_offset = retransfer_command.toInt();
-    Serial.println(sequence);
-    Serial.print("[MASTER] Retransfer request: ");
+    //Serial.println(sequence);
+    //Serial.print("[MASTER] Retransfer request: ");
     // dumb retransfer, only changes sequence number when expecting PONG
     if (expect_pong) {
       sequence = retransfer_offset + 1;
@@ -195,7 +195,7 @@ void receiveEvent(int howMany) {
       // debug only, WARNING! may loose important messages in production
       sequence = retransfer_offset + 1;
     }
-    Serial.println(sequence);    
+    //Serial.println(sequence);    
   } else {  
       // Serial.print("[MASTER] Incoming message from SLAVE: "); Serial.println(String(inmsg));
   }
@@ -224,7 +224,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);  
 
-  slave_address = scan(); // useful with master/slave devices only on the bus
+  //slave_address = scan(); // useful with master/slave devices only on the bus
 }
 
 unsigned long second_timer = millis() + 1000;
